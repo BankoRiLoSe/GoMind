@@ -2,7 +2,9 @@ package main
 
 import (
 	"log"
-	"net/http"
+
+	"gomind/internal/controller"
+	"gomind/internal/service"
 
 	"github.com/gin-gonic/gin"
 )
@@ -10,16 +12,9 @@ import (
 func main() {
 	router := gin.Default()
 
-	router.GET("/health", func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code":    0,
-			"message": "ok",
-			"data": gin.H{
-				"service": "gomind",
-				"status":  "running",
-			},
-		})
-	})
+	healthService := service.NewHealthService()
+	healthController := controller.NewHealthController(healthService)
+	healthController.RegisterRoutes(router)
 
 	if err := router.Run(":8080"); err != nil {
 		log.Fatalf("start GoMind server failed: %v", err)
