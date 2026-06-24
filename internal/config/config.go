@@ -4,17 +4,32 @@ import (
 	"fmt"
 	"os"
 
+	driver "github.com/go-sql-driver/mysql"
 	"github.com/pelletier/go-toml/v2"
 )
 
 type Config struct {
 	Server ServerConfig `toml:"server"`
+	MySQL  MySQLConfig  `toml:"mysql"`
 }
 
 type ServerConfig struct {
 	Host string `toml:"host"`
 	Port int    `toml:"port"`
 	Mode string `toml:"mode"`
+}
+
+type MySQLConfig struct {
+	Host         string `toml:"host"`
+	Port         int    `toml:"port"`
+	Username     string `toml:"username"`
+	Password     string `toml:"password"`
+	Database     string `toml:"database"`
+	Charset      string `toml:"charset"`
+	ParseTime    bool   `toml:"parse_time"`
+	Loc          string `toml:"loc"`
+	MaxIdleConns int    `toml:"max_idle_conns"`
+	MaxOpenConns int    `toml:"max_open_conns"`
 }
 
 func Load(path string) (*Config, error) {
@@ -45,11 +60,51 @@ func (c *Config) Validate() error {
 	if c.Server.Mode == "" {
 		return fmt.Errorf("server.mode is required")
 	}
+	if c.MySQL.Host == "" {
+		return fmt.Errorf("mysql.host is required")
+	}
+	if c.MySQL.Port <= 0 || c.MySQL.Port > 65535 {
+		return fmt.Errorf("mysql.port must be between 1 and 65535")
+	}
+	if c.MySQL.Username == "" {
+		return fmt.Errorf("mysql.username is required")
+	}
+	if c.MySQL.Database == "" {
+		return fmt.Errorf("mysql.database is required")
+	}
+	if c.MySQL.Charset == "" {
+		return fmt.Errorf("mysql.charset is required")
+	}
+	if c.MySQL.Loc == "" {
+		return fmt.Errorf("mysql.loc is required")
+	}
+	if c.MySQL.MaxIdleConns < 0 {
+		return fmt.Errorf("mysql.max_idle_conns cannot be negative")
+	}
+	if c.MySQL.MaxOpenConns < 0 {
+		return fmt.Errorf("mysql.max_open_conns cannot be negative")
+	}
 	return nil
 }
 
 func (c *Config) Addr() string {
 	return fmt.Sprintf("%s:%d", c.Server.Host, c.Server.Port)
+}
+
+func (c *Config) MySQLDSN() string {
+	return (&driver.Config{
+		User:                 c.MySQL.Username,
+		Passwd:               c.MySQL.Password,
+		Net:                  "tcp",
+		Addr:                 fmt.Sprintf("%s:%d", c.MySQL.Host, c.MySQL.Port),
+		DBName:               c.MySQL.Database,
+		AllowNativePasswords: true,
+		ParseTime:            c.MySQL.ParseTime,
+		Params: map[string]string{
+			"charset": c.MySQL.Charset,
+			"loc":     c.MySQL.Loc,
+		},
+	}).FormatDSN()
 }
 
 func defaultConfig() *Config {
@@ -58,6 +113,18 @@ func defaultConfig() *Config {
 			Host: "0.0.0.0",
 			Port: 8080,
 			Mode: "debug",
+		},
+		MySQL: MySQLConfig{
+			Host:         "127.0.0.1",
+			Port:         3306,
+			Username:     "root",
+			Password:     "root",
+			Database:     "gomind",
+			Charset:      "utf8mb4",
+			ParseTime:    true,
+			Loc:          "Local",
+			MaxIdleConns: 10,
+			MaxOpenConns: 100,
 		},
 	}
 }
