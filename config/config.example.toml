@@ -14,3 +14,9 @@ parse_time = true
 loc = "Local"
 max_idle_conns = 10
 max_open_conns = 100
+
+[redis]
+host = "127.0.0.1"
+port = 6379
+password = ""
+database = 0

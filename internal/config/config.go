@@ -11,6 +11,7 @@ import (
 type Config struct {
 	Server ServerConfig `toml:"server"`
 	MySQL  MySQLConfig  `toml:"mysql"`
+	Redis  RedisConfig  `toml:"redis"`
 }
 
 type ServerConfig struct {
@@ -30,6 +31,13 @@ type MySQLConfig struct {
 	Loc          string `toml:"loc"`
 	MaxIdleConns int    `toml:"max_idle_conns"`
 	MaxOpenConns int    `toml:"max_open_conns"`
+}
+
+type RedisConfig struct {
+	Host     string `toml:"host"`
+	Port     int    `toml:"port"`
+	Password string `toml:"password"`
+	Database int    `toml:"database"`
 }
 
 func Load(path string) (*Config, error) {
@@ -84,6 +92,15 @@ func (c *Config) Validate() error {
 	if c.MySQL.MaxOpenConns < 0 {
 		return fmt.Errorf("mysql.max_open_conns cannot be negative")
 	}
+	if c.Redis.Host == "" {
+		return fmt.Errorf("redis.host is required")
+	}
+	if c.Redis.Port <= 0 || c.Redis.Port > 65535 {
+		return fmt.Errorf("redis.port must be between 1 and 65535")
+	}
+	if c.Redis.Database < 0 {
+		return fmt.Errorf("redis.database cannot be negative")
+	}
 	return nil
 }
 
@@ -107,6 +124,10 @@ func (c *Config) MySQLDSN() string {
 	}).FormatDSN()
 }
 
+func (c *Config) RedisAddr() string {
+	return fmt.Sprintf("%s:%d", c.Redis.Host, c.Redis.Port)
+}
+
 func defaultConfig() *Config {
 	return &Config{
 		Server: ServerConfig{
@@ -125,6 +146,12 @@ func defaultConfig() *Config {
 			Loc:          "Local",
 			MaxIdleConns: 10,
 			MaxOpenConns: 100,
+		},
+		Redis: RedisConfig{
+			Host:     "127.0.0.1",
+			Port:     6379,
+			Password: "",
+			Database: 0,
 		},
 	}
 }
