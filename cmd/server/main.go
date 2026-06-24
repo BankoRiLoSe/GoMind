@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"gomind/internal/config"
 	"gomind/internal/controller"
 	"gomind/internal/service"
 
@@ -10,13 +11,19 @@ import (
 )
 
 func main() {
+	cfg, err := config.Load("config/config.toml")
+	if err != nil {
+		log.Fatalf("load config failed: %v", err)
+	}
+
+	gin.SetMode(cfg.Server.Mode)
 	router := gin.Default()
 
 	healthService := service.NewHealthService()
 	healthController := controller.NewHealthController(healthService)
 	healthController.RegisterRoutes(router)
 
-	if err := router.Run(":8080"); err != nil {
+	if err := router.Run(cfg.Addr()); err != nil {
 		log.Fatalf("start GoMind server failed: %v", err)
 	}
 }
