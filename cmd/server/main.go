@@ -53,6 +53,11 @@ func main() {
 	healthController := controller.NewHealthController(healthService)
 	healthController.RegisterRoutes(router)
 
+	userDao := dao.NewUserDao(mysqlDB)
+	userService := service.NewUserService(userDao)
+	userController := controller.NewUserController(userService)
+	userController.RegisterRoutes(router)
+
 	if err := router.Run(cfg.Addr()); err != nil {
 		log.Fatalf("start GoMind server failed: %v", err)
 	}

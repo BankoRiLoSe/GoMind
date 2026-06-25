@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"gomind/internal/config"
+	"gomind/internal/model"
 
 	driver "github.com/go-sql-driver/mysql"
 	"gorm.io/driver/mysql"
@@ -32,6 +33,10 @@ func InitMySQL(cfg config.MySQLConfig, dsn string) (*gorm.DB, error) {
 
 	if err := sqlDB.Ping(); err != nil {
 		return nil, fmt.Errorf("ping mysql: %w", err)
+	}
+
+	if err := db.AutoMigrate(&model.User{}); err != nil {
+		return nil, fmt.Errorf("auto migrate mysql models: %w", err)
 	}
 
 	return db, nil
