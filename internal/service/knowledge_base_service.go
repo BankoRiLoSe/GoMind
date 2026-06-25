@@ -48,3 +48,27 @@ func (s *KnowledgeBaseService) Create(ctx context.Context, req dto.CreateKnowled
 		Description:     knowledgeBase.Description,
 	}, nil
 }
+
+func (s *KnowledgeBaseService) List(ctx context.Context, userID string) ([]dto.KnowledgeBaseResponse, error) {
+	userID = strings.TrimSpace(userID)
+	if userID == "" {
+		return nil, fmt.Errorf("user_id is required")
+	}
+
+	knowledgeBases, err := s.knowledgeBaseDao.ListByUserID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	responses := make([]dto.KnowledgeBaseResponse, 0, len(knowledgeBases))
+	for _, knowledgeBase := range knowledgeBases {
+		responses = append(responses, dto.KnowledgeBaseResponse{
+			KnowledgeBaseID: knowledgeBase.UUID,
+			UserID:          knowledgeBase.UserID,
+			Name:            knowledgeBase.Name,
+			Description:     knowledgeBase.Description,
+		})
+	}
+
+	return responses, nil
+}

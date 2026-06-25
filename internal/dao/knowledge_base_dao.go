@@ -23,3 +23,15 @@ func (d *KnowledgeBaseDao) Create(ctx context.Context, knowledgeBase *model.Know
 	}
 	return nil
 }
+
+func (d *KnowledgeBaseDao) ListByUserID(ctx context.Context, userID string) ([]model.KnowledgeBase, error) {
+	var knowledgeBases []model.KnowledgeBase
+	err := d.db.WithContext(ctx).
+		Where("user_id = ?", userID).
+		Order("created_at DESC").
+		Find(&knowledgeBases).Error
+	if err != nil {
+		return nil, fmt.Errorf("list knowledge bases by user id: %w", err)
+	}
+	return knowledgeBases, nil
+}

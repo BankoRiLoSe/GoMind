@@ -20,6 +20,7 @@ func NewKnowledgeBaseController(knowledgeBaseService *service.KnowledgeBaseServi
 func (c *KnowledgeBaseController) RegisterRoutes(router *gin.Engine) {
 	group := router.Group("/api/v1/knowledge-bases")
 	group.POST("", c.Create)
+	group.GET("", c.List)
 }
 
 func (c *KnowledgeBaseController) Create(ctx *gin.Context) {
@@ -36,4 +37,15 @@ func (c *KnowledgeBaseController) Create(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, dto.Success(knowledgeBase))
+}
+
+func (c *KnowledgeBaseController) List(ctx *gin.Context) {
+	userID := ctx.Query("user_id")
+	knowledgeBases, err := c.knowledgeBaseService.List(ctx.Request.Context(), userID)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, dto.Error(err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, dto.Success(knowledgeBases))
 }
