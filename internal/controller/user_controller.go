@@ -18,7 +18,7 @@ func NewUserController(userService *service.UserService) *UserController {
 }
 
 func (c *UserController) RegisterRoutes(router *gin.Engine) {
-	group := router.Group("/api/users")
+	group := router.Group("/api/v1/users")
 	group.POST("/register", c.Register)
 }
 
