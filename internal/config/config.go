@@ -12,6 +12,7 @@ type Config struct {
 	Server ServerConfig `toml:"server"`
 	MySQL  MySQLConfig  `toml:"mysql"`
 	Redis  RedisConfig  `toml:"redis"`
+	Milvus MilvusConfig `toml:"milvus"`
 }
 
 type ServerConfig struct {
@@ -38,6 +39,14 @@ type RedisConfig struct {
 	Port     int    `toml:"port"`
 	Password string `toml:"password"`
 	Database int    `toml:"database"`
+}
+
+type MilvusConfig struct {
+	Host     string `toml:"host"`
+	Port     int    `toml:"port"`
+	Username string `toml:"username"`
+	Password string `toml:"password"`
+	Database string `toml:"database"`
 }
 
 func Load(path string) (*Config, error) {
@@ -101,6 +110,15 @@ func (c *Config) Validate() error {
 	if c.Redis.Database < 0 {
 		return fmt.Errorf("redis.database cannot be negative")
 	}
+	if c.Milvus.Host == "" {
+		return fmt.Errorf("milvus.host is required")
+	}
+	if c.Milvus.Port <= 0 || c.Milvus.Port > 65535 {
+		return fmt.Errorf("milvus.port must be between 1 and 65535")
+	}
+	if c.Milvus.Database == "" {
+		return fmt.Errorf("milvus.database is required")
+	}
 	return nil
 }
 
@@ -128,6 +146,10 @@ func (c *Config) RedisAddr() string {
 	return fmt.Sprintf("%s:%d", c.Redis.Host, c.Redis.Port)
 }
 
+func (c *Config) MilvusAddr() string {
+	return fmt.Sprintf("%s:%d", c.Milvus.Host, c.Milvus.Port)
+}
+
 func defaultConfig() *Config {
 	return &Config{
 		Server: ServerConfig{
@@ -152,6 +174,13 @@ func defaultConfig() *Config {
 			Port:     6379,
 			Password: "",
 			Database: 0,
+		},
+		Milvus: MilvusConfig{
+			Host:     "127.0.0.1",
+			Port:     19530,
+			Username: "",
+			Password: "",
+			Database: "default",
 		},
 	}
 }

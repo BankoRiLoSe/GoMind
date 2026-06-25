@@ -36,6 +36,16 @@ func main() {
 	}
 	defer redisClient.Close()
 
+	milvusClient, err := dao.InitMilvus(ctx, cfg.Milvus, cfg.MilvusAddr())
+	if err != nil {
+		log.Fatalf("init milvus failed: %v", err)
+	}
+	defer func() {
+		if err := milvusClient.Close(ctx); err != nil {
+			log.Printf("close milvus client failed: %v", err)
+		}
+	}()
+
 	gin.SetMode(cfg.Server.Mode)
 	router := gin.Default()
 
