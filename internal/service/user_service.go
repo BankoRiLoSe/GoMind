@@ -54,3 +54,27 @@ func (s *UserService) Register(ctx context.Context, req dto.RegisterRequest) (*d
 		Username: user.Username,
 	}, nil
 }
+
+func (s *UserService) Login(ctx context.Context, req dto.LoginRequest) (*dto.UserResponse, error) {
+	username := strings.TrimSpace(req.Username)
+	if username == "" {
+		return nil, fmt.Errorf("username is required")
+	}
+
+	user, err := s.userDao.GetByUsername(ctx, username)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, fmt.Errorf("invalid username or password")
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
+		return nil, fmt.Errorf("invalid username or password")
+	}
+
+	return &dto.UserResponse{
+		UserID:   user.UUID,
+		Username: user.Username,
+	}, nil
+}
