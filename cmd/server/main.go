@@ -58,6 +58,11 @@ func main() {
 	userController := controller.NewUserController(userService)
 	userController.RegisterRoutes(router)
 
+	knowledgeBaseDao := dao.NewKnowledgeBaseDao(mysqlDB)
+	knowledgeBaseService := service.NewKnowledgeBaseService(knowledgeBaseDao)
+	knowledgeBaseController := controller.NewKnowledgeBaseController(knowledgeBaseService)
+	knowledgeBaseController.RegisterRoutes(router)
+
 	if err := router.Run(cfg.Addr()); err != nil {
 		log.Fatalf("start GoMind server failed: %v", err)
 	}

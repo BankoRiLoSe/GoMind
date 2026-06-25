@@ -35,7 +35,7 @@ func InitMySQL(cfg config.MySQLConfig, dsn string) (*gorm.DB, error) {
 		return nil, fmt.Errorf("ping mysql: %w", err)
 	}
 
-	if err := db.AutoMigrate(&model.User{}); err != nil {
+	if err := db.AutoMigrate(&model.User{}, &model.KnowledgeBase{}); err != nil {
 		return nil, fmt.Errorf("auto migrate mysql models: %w", err)
 	}
 
